@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMEGA BLACK ARCHIVE</title>
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+
+:root{
+    --bg:#050706;
+    --panel:#101412;
+    --border:#28312c;
+    --text:#cfd6d1;
+    --accent:#7fa287;
+    --red:#9b3232;
+}
+
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+html, body{
+    width:100%; height:100%; overflow:hidden;
+    background:var(--bg); color:var(--text);
+    font-family:'Share Tech Mono', monospace;
+}
+
+body::before{
+    content:""; position:fixed; inset:0;
+    background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.02) 1px, transparent 1px, transparent 3px);
+    opacity:.12; pointer-events:none; z-index:9999;
+}
+
+.grid{
+    position:fixed; inset:0;
+    background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size:40px 40px;
+    animation:gridMove 10s linear infinite; opacity:.12;
+}
+@keyframes gridMove{ from{transform:translateY(0);} to{transform:translateY(40px);} }
+
+#bootScreen, #accessScreen{
+    position:fixed; inset:0; background:#040605;
+    z-index:1000; padding:40px; overflow:hidden;
+}
+
+.boot-text{ color:var(--accent); font-size:14px; line-height:1.7; white-space:pre-wrap; }
+.cursor{ animation:blink 1s infinite; }
+@keyframes blink{ 50%{opacity:0;} }
+
+#loginScreen{
+    position:fixed; inset:0; display:none;
+    align-items:center; justify-content:center; z-index:900;
+}
+
+.login-box{
+    width:520px; background:rgba(15,19,17,0.96);
+    border:1px solid var(--border); padding:40px;
+    position:relative; overflow:hidden;
+}
+.login-box::before{
+    content:""; position:absolute; top:0; left:-100%;
+    width:100%; height:2px;
+    background:linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation:sweep 4s linear infinite;
+}
+@keyframes sweep{ 0%{left:-100%;} 100%{left:100%;} }
+
+.logo{ color:var(--accent); font-size:26px; margin-bottom:10px; }
+.sub{ color:#77807a; margin-bottom:25px; line-height:1.6; font-size:13px; }
+
+input{
+    width:100%; padding:16px; background:#090b0a;
+    border:1px solid var(--border); color:var(--text);
+    font-family:inherit; outline:none; margin-bottom:15px;
+}
+input:focus{ border-color:var(--accent); }
+
+button{
+    width:100%; padding:15px; background:#141917;
+    border:1px solid var(--accent); color:var(--accent);
+    font-family:inherit; cursor:pointer;
+}
+button:hover{ background:#1b221f; }
+#error{ color:var(--red); margin-top:15px; display:none; }
+
+#terminal{
+    display:none; position:fixed; inset:0;
+    flex-direction:column; overflow:hidden;
+}
+
+.topbar{
+    height:50px; flex-shrink:0;
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 20px; background:#0f1311;
+}
+.warning{ color:var(--red); }
+
+.container{ flex:1; display:flex; height:0; overflow:hidden; }
+
+.sidebar{
+    width:280px; border-right:1px solid var(--border);
+    background:#0d1110; padding:20px;
+    overflow-y:auto; min-height:0; flex-shrink:0;
+}
+.sidebar h2{ color:var(--accent); margin-bottom:20px; font-size:14px; }
+
+.file{
+    border:1px solid var(--border); padding:12px;
+    margin-bottom:10px; background:#131816;
+    cursor:pointer; transition:.2s; font-size:13px;
+}
+.file:hover{ background:#1b221f; border-color:var(--accent); }
+.file.active{ background:#1b221f; border-color:var(--accent); color:var(--accent); }
+
+.main{
+    flex:1; padding:40px; overflow-y:auto;
+    min-height:0; scrollbar-width:thin;
+}
+.main::-webkit-scrollbar, .sidebar::-webkit-scrollbar{ width:8px; }
+.main::-webkit-scrollbar-thumb, .sidebar::-webkit-scrollbar-thumb{ background:#2b332f; }
+
+.page{ display:none; animation:fadeIn 0.3s ease; }
+.page.active{ display:block; }
+@keyframes fadeIn{ from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:translateY(0);} }
+
+.classification{
+    display:inline-block; border:1px solid var(--red);
+    color:var(--red); padding:5px 12px; margin-bottom:20px; font-size:13px;
+}
+.title{ font-size:36px; color:var(--accent); margin-bottom:15px; line-height:1.2; }
+.subtitle{ color:#7d8680; line-height:1.7; margin-bottom:10px; }
+
+.section{ margin-top:45px; }
+.section h2{
+    color:var(--accent); border-bottom:1px solid var(--border);
+    padding-bottom:10px; margin-bottom:20px; font-size:15px;
+}
+.section h3{ color:#a8b5af; margin-bottom:14px; font-size:13px; }
+
+p{ line-height:1.9; margin-bottom:16px; font-size:14px; }
+
+blockquote{
+    border-left:3px solid var(--border); padding-left:18px;
+    margin:20px 0; color:#b5bdb8; font-style:italic;
+    line-height:1.8; font-size:14px;
+}
+blockquote cite{
+    display:block; margin-top:10px;
+    color:#66706a; font-style:normal; font-size:12px;
+}
+
+.redacted{ background:black; color:black; padding:0 5px; user-select:none; }
+
+.final{
+    margin-top:60px; border:1px solid var(--red);
+    padding:25px; background:rgba(155,50,50,0.08);
+    line-height:2; font-size:14px;
+}
+
+.footer{ margin-top:60px; color:#66706a; font-size:12px; padding-bottom:20px; }
+
+table{ width:100%; border-collapse:collapse; margin:20px 0; font-size:13px; }
+th{
+    text-align:left; padding:10px 14px;
+    border:1px solid var(--border); color:var(--accent); background:#0d1110;
+}
+td{ padding:10px 14px; border:1px solid var(--border); color:var(--text); }
+tr:hover td{ background:#131c18; }
+
+.transcript{
+    background:#090c0b; border:1px solid var(--border);
+    padding:20px 24px; margin:20px 0; font-size:13px; line-height:2;
+}
+.transcript-header{
+    color:#66706a; font-size:12px; margin-bottom:14px;
+    border-bottom:1px solid var(--border); padding-bottom:10px;
+}
+.transcript p{ margin-bottom:8px; }
+.speaker{ color:var(--accent); }
+.pause{ color:#66706a; font-style:italic; }
+
+.meta{ color:#66706a; font-size:13px; line-height:1.8; margin-bottom:6px; }
+.meta span{ color:#a8b5af; }
+
+hr{ border:none; border-top:1px solid var(--border); margin:40px 0; }
+
+.analyst-quotes{ display:flex; flex-direction:column; gap:16px; margin-top:20px; }
+.analyst-quote{
+    border-left:3px solid #2b332f; padding:14px 18px;
+    background:#0a0d0c; color:#b5bdb8;
+    font-style:italic; font-size:14px; line-height:1.8;
+}
+
+/* LOCKED FILE SIDEBAR INDICATOR */
+.file.locked{
+    border-color:#5a2a2a;
+    color:#7a5050;
+    position:relative;
+}
+.file.locked::after{
+    content:"▪ RESTRICTED";
+    display:block;
+    font-size:10px;
+    color:#6b3535;
+    margin-top:4px;
+    letter-spacing:0.05em;
+}
+.file.locked:hover{
+    border-color:var(--red);
+    color:#c07070;
+    background:#1a1010;
+}
+.file.locked.active{
+    border-color:var(--red);
+    color:var(--red);
+    background:#1a1010;
+}
+
+/* LOCK GATE — shown instead of content when locked */
+.lock-gate{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    min-height:80vh;
+    gap:0;
+    position:relative;
+    overflow:hidden;
+}
+
+/* Corner brackets */
+.lock-gate::before,
+.lock-gate::after{
+    content:"";
+    position:absolute;
+    width:60px; height:60px;
+    border-color:#3a1a1a;
+    border-style:solid;
+    border-width:0;
+    opacity:0;
+    animation:cornersIn 0.4s ease 0.1s forwards;
+}
+.lock-gate::before{ top:30px; left:40px; border-top-width:1px; border-left-width:1px; }
+.lock-gate::after{  bottom:30px; right:40px; border-bottom-width:1px; border-right-width:1px; }
+
+@keyframes cornersIn{
+    from{ opacity:0; width:30px; height:30px; }
+    to{   opacity:1; width:60px; height:60px; }
+}
+
+/* Horizontal scan line that sweeps once on entry */
+.lock-gate .scan-line{
+    position:absolute;
+    left:0; right:0;
+    height:1px;
+    background:linear-gradient(90deg, transparent, rgba(155,50,50,0.4), transparent);
+    top:0;
+    animation:scanSweep 1.2s cubic-bezier(0.4,0,0.6,1) 0.2s forwards;
+    opacity:0;
+}
+@keyframes scanSweep{
+    0%{   top:0%;   opacity:0; }
+    10%{  opacity:1; }
+    90%{  opacity:1; }
+    100%{ top:100%; opacity:0; }
+}
+
+/* Status bar at top */
+.lock-status-bar{
+    width:100%;
+    max-width:500px;
+    display:flex;
+    justify-content:space-between;
+    font-size:10px;
+    color:#3d1f1f;
+    letter-spacing:0.12em;
+    margin-bottom:48px;
+    opacity:0;
+    animation:fadeInUp 0.3s ease 0.05s forwards;
+}
+
+/* Main lock icon block */
+.lock-icon-block{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:6px;
+    margin-bottom:32px;
+    opacity:0;
+    animation:fadeInUp 0.4s ease 0.15s forwards;
+}
+
+.lock-hex{
+    font-size:11px;
+    color:#3d1f1f;
+    letter-spacing:0.2em;
+    margin-bottom:8px;
+}
+
+.lock-symbol{
+    width:56px; height:56px;
+    border:1px solid #5a2020;
+    display:flex; align-items:center; justify-content:center;
+    font-size:22px;
+    color:#7a2a2a;
+    position:relative;
+    animation:pulseBox 3s ease-in-out 1s infinite;
+}
+.lock-symbol::before,
+.lock-symbol::after{
+    content:"";
+    position:absolute;
+    width:6px; height:6px;
+    border:1px solid #5a2020;
+    background:#050706;
+}
+.lock-symbol::before{ top:-3px; left:-3px; }
+.lock-symbol::after{  bottom:-3px; right:-3px; }
+
+@keyframes pulseBox{
+    0%,100%{ border-color:#5a2020; box-shadow:none; }
+    50%{ border-color:#8a3030; box-shadow:0 0 12px rgba(155,50,50,0.15); }
+}
+
+/* Classification block */
+.lock-classification{
+    margin-top:10px;
+    font-size:10px;
+    color:#5a2020;
+    letter-spacing:0.25em;
+}
+
+/* Divider line */
+.lock-divider{
+    width:320px;
+    height:1px;
+    background:linear-gradient(90deg, transparent, #3a1a1a, transparent);
+    margin:28px 0;
+    opacity:0;
+    animation:fadeInUp 0.3s ease 0.3s forwards;
+}
+
+/* Info rows */
+.lock-info{
+    width:100%;
+    max-width:400px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-bottom:36px;
+    opacity:0;
+    animation:fadeInUp 0.4s ease 0.4s forwards;
+}
+
+.lock-info-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:11px;
+    color:#4a2828;
+    letter-spacing:0.08em;
+    padding:6px 0;
+    border-bottom:1px solid #1a0e0e;
+}
+.lock-info-row span{ color:#7a4040; }
+
+/* Typing text — the system "checks" */
+.lock-check-log{
+    width:100%;
+    max-width:400px;
+    font-size:11px;
+    color:#4a2828;
+    letter-spacing:0.06em;
+    line-height:1.9;
+    margin-bottom:32px;
+    min-height:66px;
+    opacity:0;
+    animation:fadeInUp 0.3s ease 0.7s forwards;
+}
+
+/* Form */
+.lock-form{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    width:400px;
+    opacity:0;
+    animation:fadeInUp 0.4s ease 0.9s forwards;
+}
+
+.lock-form input{
+    margin-bottom:0;
+    text-align:center;
+    letter-spacing:0.15em;
+    border-color:#3a1a1a;
+    background:#070404;
+    font-size:13px;
+}
+.lock-form input:focus{ border-color:var(--red); }
+
+.lock-form button{
+    border-color:#5a2020;
+    color:#7a3030;
+    background:#070404;
+    letter-spacing:0.1em;
+    font-size:12px;
+}
+.lock-form button:hover{
+    background:#100808;
+    border-color:var(--red);
+    color:var(--red);
+}
+
+.lock-error{
+    color:var(--red);
+    font-size:11px;
+    text-align:center;
+    letter-spacing:0.1em;
+    display:none;
+}
+
+.lock-attempts{
+    color:#4a2828;
+    font-size:10px;
+    text-align:center;
+    letter-spacing:0.1em;
+}
+
+/* Shared fade-up entry */
+@keyframes fadeInUp{
+    from{ opacity:0; transform:translateY(8px); }
+    to{   opacity:1; transform:translateY(0); }
+}
+
+/* Success state */
+.lock-success{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:16px;
+    animation:fadeInUp 0.3s ease;
+}
+.lock-success-line{
+    font-size:11px;
+    letter-spacing:0.15em;
+    color:#3a6040;
+    line-height:2;
+    text-align:center;
+}
+.lock-success-line.bright{ color:var(--accent); }
+.lock-progress{
+    width:320px;
+    height:1px;
+    background:#1a2a1a;
+    position:relative;
+    overflow:hidden;
+}
+.lock-progress-fill{
+    position:absolute;
+    top:0; left:0; height:100%;
+    background:var(--accent);
+    animation:progressFill 0.8s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+@keyframes progressFill{
+    from{ width:0%; }
+    to{   width:100%; }
+}
+
+</style>
+</head>
+<body>
+
+<div class="grid"></div>
+
+<div id="bootScreen"><div class="boot-text" id="bootText"></div></div>
+
+<div id="loginScreen">
+    <div class="login-box">
+        <div class="logo">OMEGA BLACK ARCHIVE</div>
+        <div class="sub">DIRECTORATE OF EXTERNAL OPERATIONS<br>EYES ONLY CLEARANCE REQUIRED</div>
+        <input type="password" id="password" placeholder="ENTER ACCESS KEY">
+        <button onclick="checkPassword()">AUTHENTICATE</button>
+        <div id="error">ACCESS DENIED</div>
+    </div>
+</div>
+
+<div id="accessScreen" style="display:none;">
+    <div class="boot-text" id="accessText"></div>
+</div>
+
+<div id="terminal">
+    <div class="topbar">
+        <div>DIRECTORATE SECURE TERMINAL</div>
+        <div class="warning">⚠ ACTIVE THREAT — JACKAL</div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar">
+            <h2>ARCHIVE FILES</h2>
+            <div class="file active" onclick="showPage('cover', this)">COVER FILE</div>
+            <div class="file" onclick="showPage('identification', this)">SUBJECT IDENTIFICATION</div>
+            <div class="file" onclick="showPage('blackthistle', this)">BLACK THISTLE</div>
+            <div class="file locked" onclick="showPage('prague', this)">PRAGUE ASSASSINATION</div>
+            <div class="file" onclick="showPage('glassveil', this)">GLASS VEIL</div>
+            <div class="file locked" onclick="showPage('berlin', this)">BERLIN INCIDENT</div>
+            <div class="file" onclick="showPage('weapons', this)">WEAPON SYSTEMS</div>
+            <div class="file locked" onclick="showPage('psych', this)">PSYCHOLOGICAL PROFILE</div>
+            <div class="file" onclick="showPage('sighting', this)">LAST SIGHTING</div>
+            <div class="file" onclick="showPage('directive', this)">FINAL DIRECTIVE</div>
+        </div>
+
+        <div class="main" id="mainContent">
+
+            <!-- COVER -->
+            <div class="page active" id="page-cover">
+                <div class="classification">EYES ONLY — OMEGA CLEARANCE</div>
+                <div class="title">FILE: JACKAL</div>
+                <div class="subtitle">STATUS: ACTIVE THREAT &nbsp;|&nbsp; DIRECTORATE OF EXTERNAL OPERATIONS</div>
+                <div class="section">
+                    <blockquote>
+                        "There are assassins who kill for money.<br>
+                        There are soldiers who kill for nations.<br>
+                        And then there are men like <span class="redacted">[REDACTED]</span> —<br>
+                        men who kill because they no longer belong anywhere else."
+                        <cite>— Analyst <span class="redacted">[REDACTED]</span>, Internal Memorandum, 2025</cite>
+                    </blockquote>
+                </div>
+                <div class="section">
+                    <h2>ARCHIVE INDEX</h2>
+                    <p>This file contains classified operational intelligence compiled by the Directorate of External Operations. Access is restricted to personnel holding Omega-level clearance.</p>
+                    <p>Select a section from the sidebar to begin review.</p>
+                    <p>All redacted material requires secondary authorization. Attempts to reconstruct redacted content are logged.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2 — DECRYPTED</div>
+            </div>
+
+            <!-- IDENTIFICATION -->
+            <div class="page" id="page-identification">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">SUBJECT IDENTIFICATION</div>
+                <div class="section">
+                    <h2>PRIMARY PROFILE</h2>
+                    <p class="meta">Codename: <span>JACKAL</span></p>
+                    <p class="meta">True Name: <span class="redacted">[REDACTED]</span></p>
+                    <p class="meta">Date of Birth: <span class="redacted">[REDACTED]</span></p>
+                    <p class="meta">Place of Birth: <span>York, England</span></p>
+                    <p class="meta">Nationality: <span>British</span></p>
+                    <p class="meta">Former Branch: <span>Royal Marines Commando Regiment</span></p>
+                    <p class="meta">Attached Unit: <span>Joint Task Group <span class="redacted">[REDACTED]</span></span></p>
+                    <p class="meta">Specialization: <span>Reconnaissance / Long-Range Precision Elimination</span></p>
+                </div>
+                <div class="section">
+                    <h2>KNOWN ALIASES</h2>
+                    <table>
+                        <thead><tr><th>Alias</th><th>Nationality Used</th><th>Occupation</th></tr></thead>
+                        <tbody>
+                            <tr><td>Elias Voss</td><td>Austrian</td><td>Architect</td></tr>
+                            <tr><td>Adrian Vale</td><td>Canadian</td><td>Documentary Filmmaker</td></tr>
+                            <tr><td>Luca Mercer</td><td>Italian</td><td>Art Dealer</td></tr>
+                            <tr><td>Daniel Corvin</td><td>Swiss</td><td>Audio Systems Consultant</td></tr>
+                            <tr><td>Tomas Reznak</td><td>Czech</td><td>Civil Engineer</td></tr>
+                            <tr><td>Julien Bastien</td><td>French</td><td>Wine Exporter</td></tr>
+                            <tr><td><span class="redacted">[REDACTED]</span></td><td><span class="redacted">[REDACTED]</span></td><td><span class="redacted">[REDACTED]</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="section">
+                    <h2>EARLY SERVICE RECORD</h2>
+                    <p>Subject enlisted at age nineteen. Initial evaluations noted exceptional spatial awareness and unusually stable pulse control under stress conditions. During marksmanship qualification, instructors documented abnormal ability to predict environmental drift without calculation aids.</p>
+                    <blockquote>"He doesn't shoot like a sniper. He shoots like he already knows where the bullet lands."</blockquote>
+                    <p>Subject advanced rapidly through reconnaissance training and was later attached to Joint Task Group <span class="redacted">[REDACTED]</span> — an experimental operational detachment specializing in long-range observation, deep insertion reconnaissance, and deniable elimination operations.</p>
+                    <p>Personnel assigned to the unit displayed disproportionately high casualty rates. Official explanation: high-risk operational environment. Unofficial explanation: the unit performed work governments denied existed.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- BLACK THISTLE -->
+            <div class="page" id="page-blackthistle">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">OPERATION BLACK THISTLE</div>
+                <div class="subtitle">Helmand Province, Afghanistan — August 2013</div>
+                <div class="section">
+                    <h2>INCIDENT OVERVIEW</h2>
+                    <p>Subject's unit received orders to secure Canyon Route K-17 near Kajaki Dam following reports of insurgent movement. Operational intelligence indicated minimal resistance probability.</p>
+                    <p>That intelligence was false.</p>
+                    <p>At 04:31 local time, the lead Mastiff vehicle detonated an anti-armor buried IED estimated at approximately <span class="redacted">[REDACTED]</span> yield. Seven seconds later, the rear vehicle exploded. The patrol was trapped.</p>
+                    <p>Recovered thermal footage shows insurgents initiating coordinated mortar and PKM fire from elevated ridgelines. The ambush lasted twenty-six minutes. Only two members of the original fireteam survived. One of them was the subject.</p>
+                </div>
+                <div class="section">
+                    <h2>EXTRACT FROM BODYCAM AUDIO</h2>
+                    <div class="transcript">
+                        <div class="transcript-header">DECRYPTED TRANSCRIPT — BODYCAM UNIT 04</div>
+                        <p class="pause">[ENGINE NOISE]</p>
+                        <p class="pause">[LOW RADIO STATIC]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "Road's clear."</p>
+                        <p><span class="speaker">CONTROL:</span> "Copy."</p>
+                        <p class="pause">[4.8 SECOND PAUSE]</p>
+                        <p class="pause">[MASSIVE DETONATION]</p>
+                        <p class="pause">[SEVERE AUDIO DISTORTION]</p>
+                        <p class="pause">[SCREAMING]</p>
+                        <p class="pause">[METAL TWISTING]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "Jesus Christ—!"</p>
+                        <p class="pause">[LOUD RINGING]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "What happened?! What happened?!"</p>
+                        <p class="pause">[HEAVY BREATHING]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "Front vehicle's gone—"</p>
+                        <p class="pause">[DISTANT FIRE CRACKLING]</p>
+                        <p><span class="speaker">CONTROL:</span> "Black Thistle respond."</p>
+                        <p class="pause">[NO RESPONSE]</p>
+                        <p class="pause">[STATIC]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "I can't hear anything—"</p>
+                        <p class="pause">[SECONDARY DETONATION]</p>
+                        <p class="pause">[AUDIO PEAK]</p>
+                        <p class="pause">[SCREAMING]</p>
+                        <p><span class="speaker">SUBJECT:</span> "Stay down."</p>
+                        <p class="pause">[6.3 SECOND PAUSE]</p>
+                        <p><span class="speaker">UNKNOWN SOLDIER:</span> "…Was that another one?"</p>
+                        <p class="pause">[SIGNAL INTERRUPTION]</p>
+                        <p class="pause">[FILE CORRUPTED]</p>
+                    </div>
+                </div>
+                <div class="section">
+                    <h2>THE COVER-UP</h2>
+                    <p>Three weeks after Black Thistle, casualty reports were altered, satellite records disappeared, and communications logs were partially erased. Subject reportedly became obsessed with inconsistencies in the mission timeline.</p>
+                    <p>Evidence later recovered from an abandoned London flat suggests the subject discovered that command intentionally delayed extraction, that the patrol route was leaked beforehand, and that the ambush protected a separate covert operation involving private military contractors.</p>
+                    <p class="meta">— Colonel <span class="redacted">[REDACTED]</span> died from apparent overdose</p>
+                    <p class="meta">— Intelligence liaison <span class="redacted">[REDACTED]</span> vanished in Brussels</p>
+                    <p class="meta">— Two Ministry servers suffered unexplained data corruption</p>
+                    <p>Subject resigned shortly afterward. Then disappeared.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- PRAGUE -->
+            <div class="page" id="page-prague">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">THE PRAGUE ASSASSINATION</div>
+                <div class="subtitle">14 October 2018</div>
+                <div class="section">
+                    <h2>TARGET</h2>
+                    <p class="meta">Name: <span>Viktor Saranov</span></p>
+                    <p class="meta">Description: <span>Russian-Belarusian Oligarch</span></p>
+                </div>
+                <div class="section">
+                    <h2>INCIDENT REPORT</h2>
+                    <p>At 08:49 local time, Saranov was killed inside a moving armored convoy crossing Prague. The projectile entered through reinforced ballistic glass and exited through the rear headrest. No gunshot was heard.</p>
+                    <p>Forensic reconstruction later identified the firing point: an abandoned administrative building approximately 1.2 kilometers away. Counter-sniper teams reached the structure nine minutes later. They found no fingerprints, no shell casings, no rifle.</p>
+                    <blockquote>"You looked the wrong direction."<cite>— Handwritten note recovered beneath a rusted toolbox</cite></blockquote>
+                </div>
+                <div class="section">
+                    <h2>THE DISAPPEARANCE YEARS — 2014–2017</h2>
+                    <p>No confirmed activity prior to Prague. Intelligence fragments place the subject in Serbia, Grozny, Benghazi, Aleppo, and Tangier.</p>
+                    <p>This period is believed to mark the creation of the "Jackal" identity. Subject abandoned ordinary criminal structures. Instead of joining organizations, he constructed networks: forged passport suppliers, offshore banking facilitators, black-market engineers, ex-intelligence fixers, and private couriers.</p>
+                    <p>No messages. No symbols. No signatures. Only impossible kills.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- GLASS VEIL -->
+            <div class="page" id="page-glassveil">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">OPERATION GLASS VEIL</div>
+                <div class="subtitle">Classified Field Incident — March 2022</div>
+                <div class="section">
+                    <h2>CONTACT REPORT</h2>
+                    <p>In March 2022, MI6 operative Naomi Calder made direct contact with the subject without initially realizing his identity. At the time, the subject operated under the alias <strong>Daniel Corvin</strong> — Swiss audiovisual consultant.</p>
+                    <p>Corvin had spent nearly five months embedded within preparations for the Berlin Economic Unity Summit. Calder encountered him repeatedly during venue security inspections.</p>
+                    <blockquote>"Quiet. Educated. Slightly forgettable. The kind of man you stop noticing seconds after he leaves."<cite>— Calder, field notes</cite></blockquote>
+                </div>
+                <div class="section">
+                    <h2>SURVEILLANCE TRANSCRIPT</h2>
+                    <div class="transcript">
+                        <div class="transcript-header">HOTEL <span class="redacted">[REDACTED]</span> — BERLIN — 19 MARCH 2022</div>
+                        <p><span class="speaker">CALDER:</span> "You're always here before security."</p>
+                        <p><span class="speaker">CORVIN:</span> "Habit."</p>
+                        <p><span class="speaker">CALDER:</span> "Military?"</p>
+                        <p><span class="speaker">CORVIN:</span> <em>(smiles slightly)</em> "Something like that."</p>
+                        <p><span class="speaker">CALDER:</span> "Swiss consultants don't usually stand like soldiers."</p>
+                        <p><span class="speaker">CORVIN:</span> "And intelligence officers don't usually admit they notice."</p>
+                        <p class="pause">[PAUSE — 4.2 SECONDS]</p>
+                        <p><span class="speaker">CALDER:</span> "Do I know you?"</p>
+                        <p><span class="speaker">CORVIN:</span> "No."</p>
+                        <p><span class="speaker">CALDER:</span> "…You sure?"</p>
+                        <p><span class="speaker">CORVIN:</span> "If you did, this conversation would concern both of us."</p>
+                        <p class="pause">[END TRANSCRIPT]</p>
+                    </div>
+                </div>
+                <div class="section">
+                    <h2>ANALYST ASSESSMENT</h2>
+                    <p>Calder later reported feeling "profoundly unsettled" by the interaction. Facial recognition review occurred two months later. By then, the subject had vanished.</p>
+                    <p>Analysts believe the subject identified Calder as intelligence within the first thirty seconds of conversation. He allowed the interaction intentionally. Reason unknown.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- BERLIN -->
+            <div class="page" id="page-berlin">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">THE BERLIN ASSASSINATION</div>
+                <div class="subtitle">22 September 2023</div>
+                <div class="section">
+                    <h2>TARGET</h2>
+                    <p class="meta">Name: <span>Chancellor Matthias Krüger</span></p>
+                    <p class="meta">Position: <span>German Chancellor</span></p>
+                    <p class="meta">Event: <span>Berlin Economic Unity Summit</span></p>
+                </div>
+                <div class="section">
+                    <h2>INFILTRATION</h2>
+                    <p>Subject infiltrated summit planning operations for six months under the Corvin identity. He assisted directly in stage sightline calibration, acoustic mapping, lighting placement, and security blind spot consultation.</p>
+                    <p>He helped design the room from which there was no safe position.</p>
+                </div>
+                <div class="section">
+                    <h2>INCIDENT REPORT</h2>
+                    <p>At 09:42 local time, Chancellor Krüger was struck while exiting his vehicle and entering the Berlin Economic Unity Summit. Witnesses initially believed the Chancellor had stumbled during movement between security corridors. No gunshot was heard.</p>
+                    <p>Medical personnel on-site reported catastrophic neurological trauma inconsistent with visible external injury. Official cause of death: cerebral aneurysm. True cause: a precision ballistic projectile.</p>
+                    <p>Forensic reconstruction later identified the firing point: an abandoned office building over 6 kilometers from the summit perimeter. Weather conditions at the time included variable crosswinds, intermittent rainfall, and unstable atmospheric drift. Multiple analysts concluded the shot should have been impossible.</p>
+                    <p>Counter-sniper units searched the structure eleven minutes later. They found no rifle, no fingerprints, no shell casings, and evidence of recently dismantled surveillance equipment. One window overlooking the summit route had been carefully cleaned from the inside.</p>
+                    <p>Projectile fragments evaded standard autopsy procedures. Subject crossed into Poland before the Chancellor was declared dead.</p>
+                </div>
+                <div class="section">
+                    <h2>THE VIENNA INCIDENT — 2020</h2>
+                    <p>Subject eliminated an intelligence courier inside Vienna International Airport while surrounded by over 3,000 civilians. Security footage shows the target collapsing, subject walking directly past the body. No visible weapon was recovered.</p>
+                    <p>Later analysis concluded the subject likely used: <span class="redacted">[REDACTED]</span>. The weapon was never found.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- WEAPONS -->
+            <div class="page" id="page-weapons">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">WEAPON SYSTEMS</div>
+                <div class="section">
+                    <h2>OVERVIEW</h2>
+                    <p>Subject rarely uses the same rifle twice. Recovered designs suggest custom platforms engineered specifically for individual operations.</p>
+                    <p class="meta">— Carbon-polymer frames</p>
+                    <p class="meta">— Tool-less assembly</p>
+                    <p class="meta">— Integrated suppressor chambers</p>
+                    <p class="meta">— Ceramic barrel sleeves</p>
+                    <p class="meta">— Thermal signature reduction systems</p>
+                </div>
+                <div class="section">
+                    <h2>PERSON OF INTEREST — NORMAN STOKES</h2>
+                    <p class="meta">Former Position: <span>Aerospace Tooling Engineer, BAE Systems</span></p>
+                    <p class="meta">Status: <span>DISAPPEARED — 2019</span></p>
+                    <p>Stokes was dismissed from BAE Systems following an unauthorized prototype fabrication investigation. He is the suspected architect behind multiple modular rifle systems linked to the subject. His workshop was discovered abandoned.</p>
+                    <blockquote>"Accuracy is honesty."<cite>— Phrase etched into steel workbench, Stokes workshop</cite></blockquote>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- PSYCH -->
+            <div class="page" id="page-psych">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">PSYCHOLOGICAL PROFILE</div>
+                <div class="section">
+                    <h2>CLINICAL ASSESSMENT</h2>
+                    <p>Subject displays emotional compartmentalization, obsessive preparation rituals, advanced identity mimicry, absence of panic response, and unusually controlled aggression.</p>
+                    <p>Unlike sociopathic contract killers, the subject demonstrates restraint, selective targeting, and avoidance of unnecessary casualties. Internal debate continues regarding whether the subject possesses a personal moral code. Analyst consensus remains divided.</p>
+                </div>
+                <div class="section">
+                    <h2>PRIVATE ANALYST NOTES</h2>
+                    <div class="analyst-quotes">
+                        <div class="analyst-quote">"The frightening thing about him isn't the shooting. It's the patience."</div>
+                        <div class="analyst-quote">"He can become invisible without disguises. People remember faces. Nobody remembers calm."</div>
+                        <div class="analyst-quote">"Most assassins escape after killing. The Jackal escapes before he pulls the trigger."</div>
+                    </div>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- SIGHTING -->
+            <div class="page" id="page-sighting">
+                <div class="classification">EYES ONLY</div>
+                <div class="title">LAST CONFIRMED SIGHTING</div>
+                <div class="section">
+                    <h2>LOCATION REPORT</h2>
+                    <p class="meta">Location: <span>Budapest, Hungary</span></p>
+                    <p class="meta">Date: <span>11 January 2026</span></p>
+                    <p class="meta">Duration of Contact: <span>Approximately six minutes</span></p>
+                </div>
+                <div class="section">
+                    <h2>WITNESS DESCRIPTION</h2>
+                    <p class="meta">— Dark wool overcoat</p>
+                    <p class="meta">— Cigarette in left hand</p>
+                    <p class="meta">— Violin case</p>
+                    <p class="meta">— Calm demeanor</p>
+                </div>
+                <div class="section">
+                    <h2>SURVEILLANCE FAILURE</h2>
+                    <p>Surveillance maintained visual contact for approximately six minutes before the subject entered a subway platform. CCTV systems malfunctioned simultaneously across three stations. Subject disappeared. No further trace recovered.</p>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2</div>
+            </div>
+
+            <!-- DIRECTIVE -->
+            <div class="page" id="page-directive">
+                <div class="classification">EYES ONLY — FINAL DIRECTIVE</div>
+                <div class="title">FINAL DIRECTIVE</div>
+                <div class="section">
+                    <div class="final">
+                        DO NOT ENGAGE SUBJECT ALONE.<br><br>
+                        DO NOT ASSUME DISTANCE PROVIDES SAFETY.<br><br>
+                        DO NOT ASSUME YOU HAVE IDENTIFIED HIM CORRECTLY.<br><br>
+                        If the Jackal wants to disappear,<br>
+                        he already has.
+                    </div>
+                </div>
+                <div class="footer">OMEGA BLACK NODE v4.2 — END OF FILE</div>
+            </div>
+
+        </div><!-- end .main -->
+    </div><!-- end .container -->
+</div><!-- end #terminal -->
+
+<script>
+
+const bootLines = [
+    "[BOOTING OMEGA BLACK NODE]",
+    "ESTABLISHING ENCRYPTED CONNECTION...",
+    "ROUTING THROUGH SECURE RELAYS...",
+    "BYPASSING EXTERNAL MONITORS...",
+    "LOADING ARCHIVE DATABASE...",
+    "AUTHENTICATING TERMINAL...",
+    "",
+    "ACCESS RESTRICTED",
+    "AUTHORIZED PERSONNEL ONLY"
+];
+
+const bootText = document.getElementById("bootText");
+let line = 0;
+
+function typeBoot(){
+    if(line < bootLines.length){
+        bootText.innerHTML += bootLines[line] + "\n";
+        line++;
+        setTimeout(typeBoot, 400);
+    } else {
+        bootText.innerHTML += "\n\n<span class='cursor'>█</span>";
+        setTimeout(() => {
+            document.getElementById("bootScreen").style.display = "none";
+            document.getElementById("loginScreen").style.display = "flex";
+        }, 1200);
+    }
+}
+
+typeBoot();
+
+const ACCESS_PASSWORD = "BLACKSUN";
+const RESTRICTED_PASSWORD = "FIRSTLIGHT";
+const LOCKED_PAGES = ["prague", "berlin", "psych"];
+
+// Track which restricted pages have been unlocked this session
+const unlocked = new Set();
+
+// Track failed attempts per page
+const attempts = {};
+
+function checkPassword(){
+    const input = document.getElementById("password").value;
+    const error = document.getElementById("error");
+    if(input === ACCESS_PASSWORD){
+        document.getElementById("loginScreen").style.display = "none";
+        startAccessSequence();
+    } else {
+        error.style.display = "block";
+    }
+}
+
+function startAccessSequence(){
+    document.getElementById("accessScreen").style.display = "block";
+    const accessLines = [
+        "[ACCESS GRANTED]",
+        "CLEARANCE LEVEL: OMEGA",
+        "DECRYPTING DOSSIER...",
+        "LOADING ACTIVE THREAT FILES...",
+        "OPENING SECURE TERMINAL..."
+    ];
+    const accessText = document.getElementById("accessText");
+    let i = 0;
+    function typeAccess(){
+        if(i < accessLines.length){
+            accessText.innerHTML += accessLines[i] + "\n";
+            i++;
+            setTimeout(typeAccess, 500);
+        } else {
+            accessText.innerHTML += "\n\n<span class='cursor'>█</span>";
+            setTimeout(() => {
+                document.getElementById("terminal").style.display = "flex";
+                document.getElementById("accessScreen").style.display = "none";
+            }, 1200);
+        }
+    }
+    typeAccess();
+}
+
+function showPage(id, el){
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.file').forEach(f => f.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('mainContent').scrollTop = 0;
+
+    // If locked and not yet unlocked, show the gate instead
+    if(LOCKED_PAGES.includes(id) && !unlocked.has(id)){
+        showLockGate(id);
+        return;
+    }
+
+    document.getElementById('page-' + id).classList.add('active');
+}
+
+function showLockGate(id){
+    const main = document.getElementById('mainContent');
+    if(!attempts[id]) attempts[id] = 0;
+
+    const fileNames = {
+        prague: "PRAGUE ASSASSINATION",
+        berlin: "BERLIN INCIDENT",
+        psych:  "PSYCHOLOGICAL PROFILE"
+    };
+
+    const caseNums = {
+        prague: "OB-2018-PRA-009",
+        berlin: "OB-2023-BER-017",
+        psych:  "OB-PSYCH-JAK-002"
+    };
+
+    main.innerHTML = `
+        <div class="lock-gate" id="gate-${id}">
+            <div class="scan-line"></div>
+
+            <div class="lock-status-bar">
+                <span>OMEGA BLACK NODE v4.2</span>
+                <span>SESSION: ACTIVE</span>
+                <span>ENCRYPTION: AES-512</span>
+            </div>
+
+            <div class="lock-icon-block">
+                <div class="lock-hex">0x4C4F434B</div>
+                <div class="lock-symbol">⬡</div>
+                <div class="lock-classification">OMEGA BLACK — LEVEL 2 RESTRICTED</div>
+            </div>
+
+            <div class="lock-divider"></div>
+
+            <div class="lock-info">
+                <div class="lock-info-row">FILE <span>${fileNames[id]}</span></div>
+                <div class="lock-info-row">CASE REF <span>${caseNums[id]}</span></div>
+                <div class="lock-info-row">CLEARANCE REQUIRED <span>LEVEL 2 / FIRSTLIGHT</span></div>
+                <div class="lock-info-row">STATUS <span>ACCESS DENIED</span></div>
+            </div>
+
+            <div class="lock-check-log" id="gate-log-${id}"></div>
+
+            <div class="lock-form" id="gate-form-${id}" style="display:none;">
+                <input
+                    type="password"
+                    id="gate-input-${id}"
+                    placeholder="ENTER SECONDARY KEY"
+                    onkeypress="handleGateEnter(event, '${id}')"
+                    autocomplete="off"
+                >
+                <button onclick="checkGatePassword('${id}')">AUTHENTICATE</button>
+                <div class="lock-error" id="gate-error-${id}">⬡ ACCESS DENIED — INVALID CREDENTIALS</div>
+                <div class="lock-attempts" id="gate-attempts-${id}"></div>
+            </div>
+        </div>
+    `;
+
+    // Typewriter system check log, then reveal form
+    const checkLines = [
+        "VERIFYING TERMINAL CREDENTIALS...",
+        "IDENTITY CONFIRMED — OMEGA CLEARANCE",
+        "CHECKING FILE CLASSIFICATION...",
+        "FILE REQUIRES SECONDARY AUTHORIZATION.",
+        "ENTER LEVEL 2 KEY TO PROCEED.",
+    ];
+
+    const logEl = document.getElementById(`gate-log-${id}`);
+    let i = 0;
+
+    function typeNextLine(){
+        if(i < checkLines.length){
+            const line = document.createElement('div');
+            line.style.opacity = "0";
+            line.style.transition = "opacity 0.2s ease";
+            line.textContent = checkLines[i];
+            logEl.appendChild(line);
+            setTimeout(() => line.style.opacity = "1", 30);
+            i++;
+            setTimeout(typeNextLine, i < 3 ? 320 : 420);
+        } else {
+            // Reveal form
+            const form = document.getElementById(`gate-form-${id}`);
+            form.style.display = "flex";
+            form.style.opacity = "0";
+            form.style.transition = "opacity 0.4s ease";
+            setTimeout(() => {
+                form.style.opacity = "1";
+                document.getElementById(`gate-input-${id}`).focus();
+            }, 50);
+        }
+    }
+
+    setTimeout(typeNextLine, 1100);
+}
+
+function handleGateEnter(e, id){
+    if(e.key === "Enter") checkGatePassword(id);
+}
+
+function checkGatePassword(id){
+    const input = document.getElementById(`gate-input-${id}`).value;
+    const errorEl = document.getElementById(`gate-error-${id}`);
+    const attemptsEl = document.getElementById(`gate-attempts-${id}`);
+
+    if(input === RESTRICTED_PASSWORD){
+        unlocked.add(id);
+
+        const gate = document.getElementById(`gate-${id}`);
+        gate.innerHTML = `
+            <div class="lock-success">
+                <div class="lock-success-line">SECONDARY KEY ACCEPTED</div>
+                <div class="lock-success-line">VERIFYING IDENTITY SIGNATURE...</div>
+                <div class="lock-progress"><div class="lock-progress-fill"></div></div>
+                <div class="lock-success-line bright">[ AUTHORIZATION GRANTED ]</div>
+                <div class="lock-success-line">DECRYPTING FILE — PLEASE WAIT</div>
+            </div>
+        `;
+
+        setTimeout(() => {
+            restorePages();
+            document.getElementById('page-' + id).classList.add('active');
+            document.getElementById('mainContent').scrollTop = 0;
+        }, 1600);
+
+    } else {
+        attempts[id] = (attempts[id] || 0) + 1;
+        errorEl.style.display = "block";
+        attemptsEl.textContent = `FAILED ATTEMPTS THIS SESSION: ${attempts[id]}`;
+
+        const inputEl = document.getElementById(`gate-input-${id}`);
+        inputEl.value = "";
+        inputEl.style.borderColor = "var(--red)";
+        inputEl.style.background = "#0d0505";
+        setTimeout(() => {
+            inputEl.style.borderColor = "#3a1a1a";
+            inputEl.style.background = "#070404";
+        }, 700);
+    }
+}
+
+// All page HTML stored so we can restore after gate clears the main div
+let pagesHTML = null;
+
+function restorePages(){
+    const main = document.getElementById('mainContent');
+    main.innerHTML = pagesHTML;
+}
+
+document.addEventListener("keypress", function(e){
+    if(e.key === "Enter" && document.getElementById("loginScreen").style.display === "flex"){
+        checkPassword();
+    }
+});
+
+// Store original pages HTML once terminal is visible
+const observer = new MutationObserver(() => {
+    const terminal = document.getElementById("terminal");
+    if(terminal.style.display === "flex" && !pagesHTML){
+        pagesHTML = document.getElementById('mainContent').innerHTML;
+        observer.disconnect();
+    }
+});
+observer.observe(document.getElementById("terminal"), { attributes: true, attributeFilter: ["style"] });
+
+</script>
+</body>
+</html>
